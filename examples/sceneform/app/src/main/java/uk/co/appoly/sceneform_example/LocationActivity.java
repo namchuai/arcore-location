@@ -20,9 +20,9 @@ import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Pair;
 import android.view.View;
 import android.view.WindowManager;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.ar.core.Frame;
@@ -36,13 +36,13 @@ import com.google.ar.sceneform.Node;
 import com.google.ar.sceneform.rendering.ModelRenderable;
 import com.google.ar.sceneform.rendering.ViewRenderable;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 
 import uk.co.appoly.arcorelocation.LocationMarker;
 import uk.co.appoly.arcorelocation.LocationScene;
-import uk.co.appoly.arcorelocation.rendering.LocationNode;
-import uk.co.appoly.arcorelocation.rendering.LocationNodeRender;
 import uk.co.appoly.arcorelocation.utils.ARLocationPermissionHelper;
 
 /**
@@ -51,6 +51,7 @@ import uk.co.appoly.arcorelocation.utils.ARLocationPermissionHelper;
  */
 public class LocationActivity extends AppCompatActivity {
     private boolean installRequested;
+    private boolean hasFinishedLoading = false;
 
     private Snackbar loadingMessageSnackbar = null;
 
@@ -62,7 +63,7 @@ public class LocationActivity extends AppCompatActivity {
 
     // Our ARCore-Location scene
     private LocationScene locationScene;
-
+    private List<Pair<Double, Double>> latLonList = new ArrayList<>();
 
     @Override
     @SuppressWarnings({"AndroidApiChecker", "FutureReturnValueIgnored"})
@@ -71,6 +72,18 @@ public class LocationActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_sceneform);
         arSceneView = findViewById(R.id.ar_scene_view);
+
+        latLonList.add(new Pair<>(20.9972983, 105.8674725));
+        latLonList.add(new Pair<>(20.99725342005767, 105.86747057195701));
+        latLonList.add(new Pair<>(20.997208540115324, 105.86746864391517));
+        latLonList.add(new Pair<>(20.997163660172962, 105.86746671587449));
+        latLonList.add(new Pair<>(20.997118780230572, 105.86746478783498));
+        latLonList.add(new Pair<>(20.99707390028816, 105.8674628597966));
+        latLonList.add(new Pair<>(20.997029020345725, 105.86746093175941));
+        latLonList.add(new Pair<>(20.996984140403267, 105.86745900372335));
+        latLonList.add(new Pair<>(20.9969392604608, 105.86745707568848));
+        latLonList.add(new Pair<>(20.996894380518295, 105.86745514765475));
+        latLonList.add(new Pair<>(20.9968537, 105.8674534));
 
         // Build a renderable from a 2D View.
         CompletableFuture<ViewRenderable> exampleLayout =
@@ -83,7 +96,6 @@ public class LocationActivity extends AppCompatActivity {
         CompletableFuture<ModelRenderable> andy = ModelRenderable.builder()
                 .setSource(this, R.raw.andy)
                 .build();
-
 
         CompletableFuture.allOf(
                 exampleLayout,
@@ -102,6 +114,7 @@ public class LocationActivity extends AppCompatActivity {
                             try {
                                 exampleLayoutRenderable = exampleLayout.get();
                                 andyRenderable = andy.get();
+                                hasFinishedLoading = true;
 
                             } catch (InterruptedException | ExecutionException ex) {
                                 DemoUtils.displayError(this, "Unable to load renderables", ex);
@@ -116,39 +129,46 @@ public class LocationActivity extends AppCompatActivity {
                 .getScene()
                 .setOnUpdateListener(
                         frameTime -> {
+                            if (!hasFinishedLoading) {
+                                return;
+                            }
 
                             if (locationScene == null) {
                                 // If our locationScene object hasn't been setup yet, this is a good time to do it
                                 // We know that here, the AR components have been initiated.
-                                locationScene = new LocationScene(this, this, arSceneView);
+                                locationScene = new LocationScene(this, arSceneView);
 
                                 // Now lets create our location markers.
                                 // First, a layout
-                                LocationMarker layoutLocationMarker = new LocationMarker(
-                                        -4.849509,
-                                        42.814603,
-                                        getExampleView()
-                                );
+//                                LocationMarker layoutLocationMarker = new LocationMarker(
+//                                        105.8674725,
+//                                        20.9972983,
+//                                        getExampleView()
+//                                );
 
                                 // An example "onRender" event, called every frame
                                 // Updates the layout with the markers distance
-                                layoutLocationMarker.setRenderEvent(new LocationNodeRender() {
-                                    @Override
-                                    public void render(LocationNode node) {
-                                        View eView = exampleLayoutRenderable.getView();
-                                        TextView distanceTextView = eView.findViewById(R.id.textView2);
-                                        distanceTextView.setText(node.getDistance() + "M");
-                                    }
-                                });
-                                // Adding the marker
-                                locationScene.mLocationMarkers.add(layoutLocationMarker);
-
-                                // Adding a simple location marker of a 3D model
-                                locationScene.mLocationMarkers.add(
-                                        new LocationMarker(
-                                                -0.119677,
-                                                51.478494,
-                                                getAndy()));
+//                                layoutLocationMarker.setRenderEvent(node -> {
+//                                    View eView = exampleLayoutRenderable.getView();
+//                                    TextView distanceTextView = eView.findViewById(R.id.textView2);
+//                                    distanceTextView.setText(node.getDistance() + "M");
+//                                });
+//                                // Adding the marker
+//                                locationScene.mLocationMarkers.add(layoutLocationMarker);
+//
+//                                // Adding a simple location marker of a 3D model
+//                                locationScene.mLocationMarkers.add(
+//                                        new LocationMarker(
+//                                                -0.119677,
+//                                                51.478494,
+//                                                getAndy()));
+                                for (int i = 0; i < latLonList.size(); i++) {
+                                    locationScene.mLocationMarkers.add(
+                                            new LocationMarker(
+                                                    latLonList.get(i).second,
+                                                    latLonList.get(i).first,
+                                                    getAndy()));
+                                }
                             }
 
                             Frame frame = arSceneView.getArFrame();

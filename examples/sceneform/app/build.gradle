@@ -31,7 +31,7 @@ android {
              * devices and x86 to run on the emulator. Your application should
              * list the ABIs most appropriate to minimize APK size (arm64-v8a recommended).
              */
-            abiFilters 'arm64-v8a', 'x86'
+            abiFilters 'arm64-v8a', 'x86', 'x86_64', 'armv7a'
         }
     }
     compileOptions {
@@ -55,8 +55,7 @@ dependencies {
     implementation "com.google.ar.sceneform.ux:sceneform-ux:1.0.0"
     implementation "com.android.support:appcompat-v7:27.1.1"
     implementation "com.android.support:design:27.1.1"
-    //implementation 'uk.co.appoly.arcorelocation:arcore-location-debug@aar'
-    implementation 'com.github.appoly:ARCore-Location:1.0.5'
+    implementation project(':arcore-location')
 }
 
 repositories {

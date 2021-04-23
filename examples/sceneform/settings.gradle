@@ -1,1 +1,3 @@
 include ':app'
+include ':arcore-location'
+project(':arcore-location').projectDir = new File(settingsDir, '../../arcore-location')
