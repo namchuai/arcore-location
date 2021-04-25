@@ -17,14 +17,16 @@ package uk.co.appoly.sceneform_example;
 
 import android.content.Context;
 import android.os.Bundle;
-import android.support.annotation.NonNull;
-import android.support.design.widget.Snackbar;
-import android.support.v7.app.AppCompatActivity;
 import android.util.Pair;
 import android.view.View;
 import android.view.WindowManager;
+import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.AppCompatActivity;
+
+import com.google.android.material.snackbar.Snackbar;
 import com.google.ar.core.Frame;
 import com.google.ar.core.Plane;
 import com.google.ar.core.Session;
@@ -66,24 +68,22 @@ public class LocationActivity extends AppCompatActivity {
     private List<Pair<Double, Double>> latLonList = new ArrayList<>();
 
     @Override
-    @SuppressWarnings({"AndroidApiChecker", "FutureReturnValueIgnored"})
-    // CompletableFuture requires api level 24
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_sceneform);
         arSceneView = findViewById(R.id.ar_scene_view);
 
-        latLonList.add(new Pair<>(20.9972983, 105.8674725));
-        latLonList.add(new Pair<>(20.99725342005767, 105.86747057195701));
-        latLonList.add(new Pair<>(20.997208540115324, 105.86746864391517));
-        latLonList.add(new Pair<>(20.997163660172962, 105.86746671587449));
-        latLonList.add(new Pair<>(20.997118780230572, 105.86746478783498));
-        latLonList.add(new Pair<>(20.99707390028816, 105.8674628597966));
-        latLonList.add(new Pair<>(20.997029020345725, 105.86746093175941));
-        latLonList.add(new Pair<>(20.996984140403267, 105.86745900372335));
-        latLonList.add(new Pair<>(20.9969392604608, 105.86745707568848));
-        latLonList.add(new Pair<>(20.996894380518295, 105.86745514765475));
-        latLonList.add(new Pair<>(20.9968537, 105.8674534));
+        // my seat
+        latLonList.add(new Pair<>(20.997124330170422, 105.86711814968231));
+
+//        latLonList.add(new Pair<>(20.9972983,105.8674725));
+//        latLonList.add(new Pair<>(20.99722649209227,105.86746941513177));
+//        latLonList.add(new Pair<>(20.997154684184483,105.8674663302665));
+//        latLonList.add(new Pair<>(20.997082876276643,105.8674632454042));
+//        latLonList.add(new Pair<>(20.997011068368742,105.86746016054485));
+//        latLonList.add(new Pair<>(20.9969392604608,105.86745707568848));
+//        latLonList.add(new Pair<>(20.99686745255279,105.86745399083507));
+//        latLonList.add(new Pair<>(20.9968537,105.8674534));
 
         // Build a renderable from a 2D View.
         CompletableFuture<ViewRenderable> exampleLayout =
@@ -140,35 +140,35 @@ public class LocationActivity extends AppCompatActivity {
 
                                 // Now lets create our location markers.
                                 // First, a layout
-//                                LocationMarker layoutLocationMarker = new LocationMarker(
-//                                        105.8674725,
-//                                        20.9972983,
-//                                        getExampleView()
-//                                );
+                                LocationMarker layoutLocationMarker = new LocationMarker(
+                                        latLonList.get(0).second,
+                                        latLonList.get(0).first,
+                                        getExampleView()
+                                );
 
-                                // An example "onRender" event, called every frame
-                                // Updates the layout with the markers distance
-//                                layoutLocationMarker.setRenderEvent(node -> {
-//                                    View eView = exampleLayoutRenderable.getView();
-//                                    TextView distanceTextView = eView.findViewById(R.id.textView2);
-//                                    distanceTextView.setText(node.getDistance() + "M");
-//                                });
-//                                // Adding the marker
-//                                locationScene.mLocationMarkers.add(layoutLocationMarker);
-//
-//                                // Adding a simple location marker of a 3D model
+//                                 An example "onRender" event, called every frame
+//                                 Updates the layout with the markers distance
+                                layoutLocationMarker.setRenderEvent(node -> {
+                                    View eView = exampleLayoutRenderable.getView();
+                                    TextView distanceTextView = eView.findViewById(R.id.textView2);
+                                    distanceTextView.setText(node.getDistance() + "M");
+                                });
+                                // Adding the marker
+                                locationScene.mLocationMarkers.add(layoutLocationMarker);
+
+                                // Adding a simple location marker of a 3D model
 //                                locationScene.mLocationMarkers.add(
 //                                        new LocationMarker(
-//                                                -0.119677,
-//                                                51.478494,
+//                                                latLonList.get(0).second,
+//                                                latLonList.get(0).first,
 //                                                getAndy()));
-                                for (int i = 0; i < latLonList.size(); i++) {
-                                    locationScene.mLocationMarkers.add(
-                                            new LocationMarker(
-                                                    latLonList.get(i).second,
-                                                    latLonList.get(i).first,
-                                                    getAndy()));
-                                }
+//                                for (int i = 0; i < latLonList.size(); i++) {
+//                                    locationScene.mLocationMarkers.add(
+//                                            new LocationMarker(
+//                                                    latLonList.get(i).second,
+//                                                    latLonList.get(i).first,
+//                                                    getAndy()));
+//                                }
                             }
 
                             Frame frame = arSceneView.getArFrame();
