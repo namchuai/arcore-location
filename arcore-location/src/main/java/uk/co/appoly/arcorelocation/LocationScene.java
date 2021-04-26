@@ -291,7 +291,7 @@ public class LocationScene {
 
                 // Raise distant markers for better illusion of distance
                 // Hacky - but it works as a temporary measure
-                int cappedRealDistance = markerDistance > 500 ? 500 : markerDistance;
+                int cappedRealDistance = Math.min(markerDistance, 500);
                 if (renderDistance != markerDistance)
                     heightAdjustment += 0.005F * (cappedRealDistance - renderDistance);
 

@@ -74,7 +74,7 @@ public class LocationActivity extends AppCompatActivity {
         arSceneView = findViewById(R.id.ar_scene_view);
 
         // my seat
-        latLonList.add(new Pair<>(20.997124330170422, 105.86711814968231));
+        latLonList.add(new Pair<>(20.997108357280048, 105.86699953158784));
 
 //        latLonList.add(new Pair<>(20.9972983,105.8674725));
 //        latLonList.add(new Pair<>(20.99722649209227,105.86746941513177));
@@ -140,35 +140,35 @@ public class LocationActivity extends AppCompatActivity {
 
                                 // Now lets create our location markers.
                                 // First, a layout
-                                LocationMarker layoutLocationMarker = new LocationMarker(
-                                        latLonList.get(0).second,
-                                        latLonList.get(0).first,
-                                        getExampleView()
-                                );
-
-//                                 An example "onRender" event, called every frame
-//                                 Updates the layout with the markers distance
-                                layoutLocationMarker.setRenderEvent(node -> {
-                                    View eView = exampleLayoutRenderable.getView();
-                                    TextView distanceTextView = eView.findViewById(R.id.textView2);
-                                    distanceTextView.setText(node.getDistance() + "M");
-                                });
+//                                LocationMarker layoutLocationMarker = new LocationMarker(
+//                                        latLonList.get(0).second,
+//                                        latLonList.get(0).first,
+//                                        getExampleView()
+//                                );
+//
+////                                 An example "onRender" event, called every frame
+////                                 Updates the layout with the markers distance
+//                                layoutLocationMarker.setRenderEvent(node -> {
+//                                    View eView = exampleLayoutRenderable.getView();
+//                                    TextView distanceTextView = eView.findViewById(R.id.textView2);
+//                                    distanceTextView.setText(node.getDistance() + "M");
+//                                });
                                 // Adding the marker
-                                locationScene.mLocationMarkers.add(layoutLocationMarker);
+//                                locationScene.mLocationMarkers.add(layoutLocationMarker);
 
                                 // Adding a simple location marker of a 3D model
-//                                locationScene.mLocationMarkers.add(
-//                                        new LocationMarker(
-//                                                latLonList.get(0).second,
-//                                                latLonList.get(0).first,
-//                                                getAndy()));
-//                                for (int i = 0; i < latLonList.size(); i++) {
-//                                    locationScene.mLocationMarkers.add(
-//                                            new LocationMarker(
-//                                                    latLonList.get(i).second,
-//                                                    latLonList.get(i).first,
-//                                                    getAndy()));
-//                                }
+                                locationScene.mLocationMarkers.add(
+                                        new LocationMarker(
+                                                latLonList.get(0).second,
+                                                latLonList.get(0).first,
+                                                getAndy()));
+                                for (int i = 0; i < latLonList.size(); i++) {
+                                    locationScene.mLocationMarkers.add(
+                                            new LocationMarker(
+                                                    latLonList.get(i).second,
+                                                    latLonList.get(i).first,
+                                                    getAndy()));
+                                }
                             }
 
                             Frame frame = arSceneView.getArFrame();
