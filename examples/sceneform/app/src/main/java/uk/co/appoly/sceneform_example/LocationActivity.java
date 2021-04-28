@@ -15,7 +15,6 @@
  */
 package uk.co.appoly.sceneform_example;
 
-import android.content.Context;
 import android.os.Bundle;
 import android.util.Pair;
 import android.view.View;
@@ -35,23 +34,24 @@ import com.google.ar.core.exceptions.CameraNotAvailableException;
 import com.google.ar.core.exceptions.UnavailableException;
 import com.google.ar.sceneform.ArSceneView;
 import com.google.ar.sceneform.Node;
-import com.google.ar.sceneform.rendering.ModelRenderable;
 import com.google.ar.sceneform.rendering.ViewRenderable;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
 
 import uk.co.appoly.arcorelocation.LocationMarker;
 import uk.co.appoly.arcorelocation.LocationScene;
 import uk.co.appoly.arcorelocation.utils.ARLocationPermissionHelper;
+import uk.co.appoly.sceneform_example.model.LocationType;
+import uk.co.appoly.sceneform_example.model.Marker;
 
 /**
  * This is a simple example that shows how to create an augmented reality (AR) application using the
  * ARCore and Sceneform APIs.
  */
 public class LocationActivity extends AppCompatActivity {
+    private static final String TAG = "LocationActivity";
     private boolean installRequested;
     private boolean hasFinishedLoading = false;
 
@@ -59,69 +59,53 @@ public class LocationActivity extends AppCompatActivity {
 
     private ArSceneView arSceneView;
 
-    // Renderables for this example
-    private ModelRenderable andyRenderable;
-    private ViewRenderable exampleLayoutRenderable;
-
     // Our ARCore-Location scene
     private LocationScene locationScene;
-    private List<Pair<Double, Double>> latLonList = new ArrayList<>();
+    private final List<Marker> markerDataList = new ArrayList<>();
+    private final List<CompletableFuture<Void>> myRenderableFuture = new ArrayList<>();
+    private final List<Pair<ViewRenderable, Marker>> myRenderable = new ArrayList<>();
+
+    private void generateSampleData() {
+        markerDataList.add(new Marker(
+                20.9964248899242, 105.868930437133, "The Coffee House", LocationType.COFFEE_SHOP
+        ));
+
+        markerDataList.add(new Marker(
+                20.996344464798728, 105.8685612447664, "T5 - Times City", LocationType.VIN_BUILDING
+        ));
+
+        markerDataList.add(new Marker(
+                20.99712869246975, 105.86797196605553, "Century Tower", LocationType.VIN_BUILDING
+        ));
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
         setContentView(R.layout.activity_sceneform);
         arSceneView = findViewById(R.id.ar_scene_view);
 
-        // my seat
-        latLonList.add(new Pair<>(20.997108357280048, 105.86699953158784));
+        generateSampleData();
 
-//        latLonList.add(new Pair<>(20.9972983,105.8674725));
-//        latLonList.add(new Pair<>(20.99722649209227,105.86746941513177));
-//        latLonList.add(new Pair<>(20.997154684184483,105.8674663302665));
-//        latLonList.add(new Pair<>(20.997082876276643,105.8674632454042));
-//        latLonList.add(new Pair<>(20.997011068368742,105.86746016054485));
-//        latLonList.add(new Pair<>(20.9969392604608,105.86745707568848));
-//        latLonList.add(new Pair<>(20.99686745255279,105.86745399083507));
-//        latLonList.add(new Pair<>(20.9968537,105.8674534));
+        for (final Marker marker : markerDataList) {
+            myRenderableFuture.add(ViewRenderable.builder()
+                    .setView(this, R.layout.example_layout)
+                    .build()
+                    .thenAccept(renderable -> {
+                        View view = renderable.getView();
+                        TextView title = view.findViewById(R.id.textView);
+                        title.setText(marker.getTitle());
+                        myRenderable.add(new Pair<>(renderable, marker));
+                    }));
+        }
 
-        // Build a renderable from a 2D View.
-        CompletableFuture<ViewRenderable> exampleLayout =
-                ViewRenderable.builder()
-                        .setView(this, R.layout.example_layout)
-                        .build();
-
-        // When you build a Renderable, Sceneform loads its resources in the background while returning
-        // a CompletableFuture. Call thenAccept(), handle(), or check isDone() before calling get().
-        CompletableFuture<ModelRenderable> andy = ModelRenderable.builder()
-                .setSource(this, R.raw.andy)
-                .build();
-
-        CompletableFuture.allOf(
-                exampleLayout,
-                andy)
-                .handle(
-                        (notUsed, throwable) -> {
-                            // When you build a Renderable, Sceneform loads its resources in the background while
-                            // returning a CompletableFuture. Call handle(), thenAccept(), or check isDone()
-                            // before calling get().
-
-                            if (throwable != null) {
-                                DemoUtils.displayError(this, "Unable to load renderables", throwable);
-                                return null;
-                            }
-
-                            try {
-                                exampleLayoutRenderable = exampleLayout.get();
-                                andyRenderable = andy.get();
-                                hasFinishedLoading = true;
-
-                            } catch (InterruptedException | ExecutionException ex) {
-                                DemoUtils.displayError(this, "Unable to load renderables", ex);
-                            }
-
-                            return null;
-                        });
+        CompletableFuture.allOf(myRenderableFuture.toArray(new CompletableFuture[myRenderableFuture.size()])).handle(
+                (a,b) -> {
+                    hasFinishedLoading = true;
+                    return null;
+                }
+        );
 
         // Set an update listener on the Scene that will hide the loading message once a Plane is
         // detected.
@@ -138,36 +122,19 @@ public class LocationActivity extends AppCompatActivity {
                                 // We know that here, the AR components have been initiated.
                                 locationScene = new LocationScene(this, arSceneView);
 
-                                // Now lets create our location markers.
-                                // First, a layout
-//                                LocationMarker layoutLocationMarker = new LocationMarker(
-//                                        latLonList.get(0).second,
-//                                        latLonList.get(0).first,
-//                                        getExampleView()
-//                                );
-//
-////                                 An example "onRender" event, called every frame
-////                                 Updates the layout with the markers distance
-//                                layoutLocationMarker.setRenderEvent(node -> {
-//                                    View eView = exampleLayoutRenderable.getView();
-//                                    TextView distanceTextView = eView.findViewById(R.id.textView2);
-//                                    distanceTextView.setText(node.getDistance() + "M");
-//                                });
-                                // Adding the marker
-//                                locationScene.mLocationMarkers.add(layoutLocationMarker);
+                                for (final Pair<ViewRenderable, Marker> data : myRenderable) {
+                                    LocationMarker locationMarker = new LocationMarker(
+                                            data.second.getLongitude(),
+                                            data.second.getLatitude(),
+                                            getView(data.first, data.second)
+                                    );
+                                    locationMarker.setRenderEvent(node -> {
+                                        View view = data.first.getView();
+                                        TextView distanceTextView = view.findViewById(R.id.textView2);
+                                        distanceTextView.setText(node.getDistance() + " m");
+                                    });
 
-                                // Adding a simple location marker of a 3D model
-                                locationScene.mLocationMarkers.add(
-                                        new LocationMarker(
-                                                latLonList.get(0).second,
-                                                latLonList.get(0).first,
-                                                getAndy()));
-                                for (int i = 0; i < latLonList.size(); i++) {
-                                    locationScene.mLocationMarkers.add(
-                                            new LocationMarker(
-                                                    latLonList.get(i).second,
-                                                    latLonList.get(i).first,
-                                                    getAndy()));
+                                    locationScene.mLocationMarkers.add(locationMarker);
                                 }
                             }
 
@@ -198,42 +165,34 @@ public class LocationActivity extends AppCompatActivity {
         ARLocationPermissionHelper.requestPermission(this);
     }
 
-    /**
-     * Example node of a layout
-     *
-     * @return
-     */
-    private Node getExampleView() {
-        Node base = new Node();
-        base.setRenderable(exampleLayoutRenderable);
-        Context c = this;
-        // Add  listeners etc here
-        View eView = exampleLayoutRenderable.getView();
-        eView.setOnTouchListener((v, event) -> {
-            Toast.makeText(
-                    c, "Location marker touched.", Toast.LENGTH_LONG)
-                    .show();
-            return false;
-        });
+    private void checkIfFoundAndReplace(LocationScene locationScene, LocationMarker locationMarker) {
+        if (locationScene == null) {
+            return;
+        }
+        if (locationScene.mLocationMarkers.size() >= markerDataList.size()) {
+            for (int i = 0; i < locationScene.mLocationMarkers.size(); i++) {
+                if (locationScene.mLocationMarkers.get(i).node.getName().equals(locationMarker.node.getName())) {
+                    locationScene.mLocationMarkers.get(i).anchorNode.getAnchor().detach();
+                    locationScene.mLocationMarkers.get(i).anchorNode.setAnchor(null);
+                    locationScene.mLocationMarkers.get(i).anchorNode.setEnabled(false);
+                    locationScene.mLocationMarkers.get(i).anchorNode = null;
+                    locationScene.mLocationMarkers.remove(i);
 
-        return base;
+                    locationScene.mLocationMarkers.add(locationMarker);
+                    locationScene.refreshAnchors();
+                    return;
+                }
+            }
+        } else {
+            locationScene.mLocationMarkers.add(locationMarker);
+        }
     }
 
-    /***
-     * Example Node of a 3D model
-     *
-     * @return
-     */
-    private Node getAndy() {
-        Node base = new Node();
-        base.setRenderable(andyRenderable);
-        Context c = this;
-        base.setOnTapListener((v, event) -> {
-            Toast.makeText(
-                    c, "Andy touched.", Toast.LENGTH_LONG)
-                    .show();
-        });
-        return base;
+    private Node getView(ViewRenderable vr, Marker marker) {
+        Node node = new Node();
+        node.setRenderable(vr);
+
+        return node;
     }
 
     /**

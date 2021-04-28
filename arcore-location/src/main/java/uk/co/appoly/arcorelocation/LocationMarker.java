@@ -1,5 +1,7 @@
 package uk.co.appoly.arcorelocation;
 
+import android.location.Location;
+
 import com.google.ar.sceneform.AnchorNode;
 import com.google.ar.sceneform.Node;
 
@@ -30,6 +32,7 @@ public class LocationMarker {
     private ScalingMode scalingMode = ScalingMode.FIXED_SIZE_ON_SCREEN;
     private float gradualScalingMinScale = 0.8F;
     private float gradualScalingMaxScale = 1.4F;
+
 
     public LocationMarker(double longitude, double latitude, Node node) {
         this.longitude = longitude;
